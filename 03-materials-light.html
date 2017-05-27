@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title>materials-light</title>
-	<script src="third_party/three.js" type="text/javascript" charset="utf-8" async defer></script>
+	<script src="libs/three.js" type="text/javascript" charset="utf-8" async defer></script>
 	<style type="text/css" media="screen">
 		body {
 			margin: 0;
@@ -23,7 +23,7 @@
         var renderer = new THREE.WebGLRenderer();
         renderer.setClearColor(new THREE.Color(0xffffff, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.shadowMapEnabled = true;
         // create the ground plane
         var planeGeometry = new THREE.PlaneGeometry(60, 20);
         var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});

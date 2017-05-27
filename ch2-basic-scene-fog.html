@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title>ch2-basic-scene-fog</title>
-	<script src="third_party/three.js" type="text/javascript"></script>
+	<script src="libs/three.js" type="text/javascript"></script>
 	<script src="libs/stats.js" type="text/javascript"></script>
 	<script src="libs/dat.gui.js" type="text/javascript"></script>
 	<style>
@@ -41,7 +41,7 @@
 
         renderer.setClearColor(new THREE.Color(0x000000, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.shadowMapEnabled = true;
 
         // create the ground plane
         var planeGeometry = new THREE.PlaneGeometry(60, 40, 1, 1);
