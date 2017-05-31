@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>materials-light-animation</title>
+	<script src="libs/three.js" type="text/javascript"></script>
+	<script src="libs/stats.js" type="text/javascript"></script>
+	<script src="libs/dat.gui.js" type="text/javascript"></script>
+	<style type="text/css" media="screen">
+		body {
+			margin: 0;
+			overflow: hidden;
+		}	
+	</style>
+</head>
+<body>
+	<div id="Stats-output">
+	</div>
+	<div id="WebGL-output">
+	</div>
+	<script type="text/javascript">
+	function init () {
+		
+		var stats = initStats();
+
+		// create a scene, a camera, and a render
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.shadowaMapEnabled = true;
+
+		//create a plane
+		var planeGeometry = new THREE.PlaneGeometry(60, 40, 1, 1);
+		var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+		var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+		plane.receiveShadow = true;
+    // rotate and position the plane
+    plane.rotation.x = -0.5 * Math.PI;
+    plane.position.x = 0;
+    plane.position.y = 0;
+    plane.position.z = 0;
+    // add the plane to the scene
+    scene.add(plane);
+
+    //position and point the camera to the center of the scene
+    camera.position.x = -20;
+    camera.position.y = 25;
+    camera.position.z = 20;
+    camera.lookAt(new THREE.Vector3(5,0,0));
+
+    // add spotlight for the shadows
+    var spotLight = new THREE.SpotLight(0xffffff);
+    spotLight.position.set(-40, 60, 10);
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    // add the output of the renderer to the html element
+    document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+    // create geometries by defining the vertices and faces
+    var vertices = [
+    		new THREE.Vector3(1,3,1),
+    		new THREE.Vector3(1,3,-1),
+    		new THREE.Vector3(1,-1,1),
+    		new THREE.Vector3(1,-1,-1),
+    		new THREE.Vector3(-1,3,-1),
+    		new THREE.Vector3(-1,3,1),
+    		new THREE.Vector3(-1,-1,-1),
+    		new THREE.Vector3(-1,-1,1)
+    ];
+
+    var faces = [
+    		// connect points 0, 2, 1 from the vertices array to create a triangular faces.
+    		// define six sides of the cube -- two triangles for each face
+		    new THREE.Face3(0, 2, 1),
+        new THREE.Face3(2, 3, 1),
+        new THREE.Face3(4, 6, 5),
+        new THREE.Face3(6, 7, 5),
+        new THREE.Face3(4, 5, 1),
+        new THREE.Face3(5, 0, 1),
+        new THREE.Face3(7, 6, 2),
+        new THREE.Face3(6, 3, 2),
+        new THREE.Face3(5, 7, 0),
+        new THREE.Face3(7, 2, 0),
+        new THREE.Face3(1, 3, 4),
+        new THREE.Face3(3, 6, 4),
+    ];
+
+    // generate a geom object
+    var geom = new THREE.Geometry();
+    geom.vertices = vertices;
+    geom.faces = faces;
+    geom.mergeVertices();
+
+    // create an array of two materials
+    var materials = [
+    		new THREE.MeshLambertMaterial({opacity: 0.6, color: 0x44ff44, transparent: true}),
+    		new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true})
+    ];
+
+    var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, materials);
+    mesh.children.forEach(function(e) {
+    	e.castShadow = true
+    });
+
+    scene.add(mesh);
+
+    // add x, y, z control for each vertice 
+    function addControl(x, y ,z) {
+    	var controls = new function () {
+    		this.x = x;
+    		this.y = y;
+    		this.z = z;
+    	};
+    	return controls;
+    }
+
+    // create control points in GUI panel
+    var controlPoints = [];
+    controlPoints.push(addControl(3, 5, 3));
+    controlPoints.push(addControl(3, 5, 0));
+    controlPoints.push(addControl(3, 0, 3));
+    controlPoints.push(addControl(3, 0, 0));
+    controlPoints.push(addControl(0, 5, 0));
+    controlPoints.push(addControl(0, 5, 3));
+    controlPoints.push(addControl(0, 0, 0));
+    controlPoints.push(addControl(0, 0, 3));
+
+    // generate a new GUI object
+    var gui = new dat.GUI();
+
+    // append each vertice control element to the panel
+    for (var i = 0; i < 8; i++) {
+    	controlListItems = gui.addFolder('Vertices' + (i+1));
+    	controlListItems.add(controlPoints[i], 'x', -10, 10);
+    	controlListItems.add(controlPoints[i], 'y', -10, 10);
+    	controlListItems.add(controlPoints[i], 'z', -10, 10);
+    }
+
+    // add clone function to clone the geometry
+    gui.add(new function() {
+    		this.clone = function() {
+    	  	// get a copy of the original geometry
+    	  	var clonedGeometry = mesh.children[0].geometry.clone();
+    	  	// redefine the color and material
+    	  	var materials = [
+    	  	    new THREE.MeshLambertMaterial({pacity: 0.6, color: 0xff44ff, transparent: true}),
+    	  	    new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true})
+    	  	];
+    	  	// create the clone geometry
+    	  	var mesh2 = THREE.SceneUtils.createMultiMaterialObject(clonedGeometry, materials);
+    	  	mesh2.children.forEach(function(e) {
+    	  		e.castShadow = true;
+    	  	});
+    	  	// move objects through the specified amount over the x axis
+    	  	mesh2.translateX(5);
+    	  	mesh2.translateZ(5);
+    	  	mesh2.name = "clone";
+    	  	// remove the previous clone if present
+    	  	scene.remove(scene.getChildByName("clone"));
+    	  	scene.add(mesh2);
+    		}
+    	}, 'clone');
+    // call render function
+		render();
+
+		function render() {
+			stats.update();
+			
+			var vertices = [];
+			for (var i = 0; i < 8; i++) {
+				vertices.push(new THREE.Vector3(controlPoints[i].x, controlPoints[i].y, controlPoints[i].z));
+			}
+
+			// update the vertices
+			mesh.children.forEach(function (e) {
+				e.geometry.vertices = vertices;
+				e.geometry.verticesNeedUpdate = true;
+				e.geometry.computeFaceNormals();
+			});
+
+			// render
+			requestAnimationFrame(render);
+			renderer.render(scene, camera);
+		}
+
+		function initStats() {
+
+            var stats = new Stats();
+
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+    }
+	}
+	window.onload = init;
+</script>
+</body>
+</html>
